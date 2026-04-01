@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard do Gestor · Temperamento</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --col:#1A1209; --san:#8B4A1C; --mel:#2C3E50; --fle:#1B4332;
+    --bg:#F7F3EE; --card:#FDFAF7; --border:#E0D8CE;
+    --text:#1A1209; --muted:#8A7F72;
+    --col-light:#F5E6D3; --san-light:#FDF0E0; --mel-light:#E8EEF4; --fle-light:#E8F4EE;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Cormorant Garamond',Georgia,serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.35;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");}
+
+  /* LOGIN */
+  #login-screen{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;}
+  .login-box{background:var(--card);border:1px solid var(--border);padding:3rem 2.5rem;border-radius:2px;width:360px;text-align:center;}
+  .login-box .eyebrow{font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:0.8rem;}
+  .login-box h2{font-size:1.8rem;font-weight:300;font-style:italic;margin-bottom:0.4rem;}
+  .login-box p{font-size:0.9rem;color:var(--muted);margin-bottom:1.8rem;}
+  .login-box input[type="password"]{width:100%;font-family:'DM Mono',monospace;font-size:0.9rem;padding:0.75rem 1rem;border:1px solid var(--border);border-radius:2px;background:var(--bg);color:var(--text);outline:none;transition:border-color 0.15s;text-align:center;letter-spacing:0.2em;margin-bottom:0.8rem;}
+  .login-box input:focus{border-color:var(--text);}
+  .login-err{color:#c0392b;font-family:'DM Mono',monospace;font-size:0.68rem;margin-bottom:0.8rem;display:none;}
+
+  .btn-primary{font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.85rem 2rem;background:var(--text);color:var(--bg);border:none;border-radius:2px;cursor:pointer;transition:opacity 0.2s;width:100%;}
+  .btn-primary:hover{opacity:0.8;}
+
+  /* MAIN */
+  #main-screen{display:none;}
+  .container{max-width:1000px;margin:0 auto;padding:2rem 1.5rem;position:relative;z-index:1;}
+
+  header{padding:2.5rem 0 2rem;border-bottom:1px solid var(--border);margin-bottom:2.5rem;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
+  .eyebrow{font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;margin-bottom:0.5rem;}
+  h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:300;line-height:1.1;letter-spacing:-0.02em;}
+  h1 em{font-style:italic;}
+
+  .header-actions{display:flex;gap:0.75rem;align-items:center;}
+  .btn-sm{font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.55rem 1.2rem;border-radius:2px;cursor:pointer;transition:all 0.15s;}
+  .btn-outline{background:transparent;color:var(--text);border:1px solid var(--border);}
+  .btn-outline:hover{border-color:var(--text);}
+  .btn-dark{background:var(--text);color:var(--bg);border:1px solid var(--text);}
+  .btn-dark:hover{opacity:0.8;}
+
+  /* KPI */
+  .kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:2rem;}
+  @media(max-width:700px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+  .kpi-card{background:var(--card);border:1px solid var(--border);padding:1.5rem 1rem;border-radius:2px;text-align:center;}
+  .kpi-num{font-size:2.5rem;font-weight:300;font-style:italic;line-height:1;margin-bottom:0.3rem;}
+  .kpi-label{font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);}
+  .kpi-card.col .kpi-num{color:var(--col);}
+  .kpi-card.san .kpi-num{color:var(--san);}
+  .kpi-card.mel .kpi-num{color:var(--mel);}
+  .kpi-card.fle .kpi-num{color:var(--fle);}
+
+  /* CHART */
+  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem;}
+  @media(max-width:600px){.charts-row{grid-template-columns:1fr;}}
+  .chart-card{background:var(--card);border:1px solid var(--border);padding:1.8rem;border-radius:2px;}
+  .card-title{font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:1.2rem;}
+
+  .dist-bar-row{margin-bottom:0.9rem;}
+  .dist-meta{display:flex;justify-content:space-between;margin-bottom:0.3rem;font-size:0.9rem;}
+  .dist-pct{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);}
+  .bar-track{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:2px;transition:width 0.9s cubic-bezier(0.16,1,0.3,1);width:0%;}
+  .bar-fill.col{background:var(--col)} .bar-fill.san{background:var(--san)}
+  .bar-fill.mel{background:var(--mel)} .bar-fill.fle{background:var(--fle)}
+
+  /* TABLE */
+  .table-card{background:var(--card);border:1px solid var(--border);border-radius:2px;overflow:hidden;margin-bottom:2rem;}
+  .table-header{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;}
+  .search-input{font-family:'DM Mono',monospace;font-size:0.75rem;padding:0.5rem 0.8rem;border:1px solid var(--border);border-radius:2px;background:var(--bg);color:var(--text);outline:none;width:200px;transition:border-color 0.15s;}
+  .search-input:focus{border-color:var(--text);}
+  .filter-btns{display:flex;gap:0.4rem;flex-wrap:wrap;}
+  .flt{font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.3rem 0.7rem;border-radius:1px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all 0.15s;}
+  .flt:hover,.flt.active{background:var(--text);color:var(--bg);border-color:var(--text);}
+
+  table{width:100%;border-collapse:collapse;font-size:0.9rem;}
+  th{font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);text-align:left;padding:0.6rem 1rem;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;}
+  th:hover{color:var(--text);}
+  td{padding:0.85rem 1rem;border-bottom:1px solid var(--border);}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(0,0,0,0.015);}
+
+  .badge{display:inline-block;font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.2rem 0.55rem;border-radius:1px;}
+  .badge.col{background:var(--col-light);color:var(--col);}
+  .badge.san{background:var(--san-light);color:var(--san);}
+  .badge.mel{background:var(--mel-light);color:var(--mel);}
+  .badge.fle{background:var(--fle-light);color:var(--fle);}
+
+  .mini-bars{display:flex;gap:2px;align-items:center;}
+  .mini-seg{height:5px;border-radius:1px;min-width:2px;}
+
+  .date-cell{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);}
+
+  /* AI */
+  .ai-box{background:var(--card);border:1px solid var(--border);padding:2rem 2.5rem;border-radius:2px;margin-bottom:2rem;}
+  .ai-label{font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;}
+  .ai-dot{width:6px;height:6px;border-radius:50%;background:var(--text);animation:pulse 1.5s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.2}}
+  .ai-text{font-size:1rem;line-height:1.9;font-weight:300;white-space:pre-wrap;}
+  .ai-text.loading{color:var(--muted);font-style:italic;}
+
+  .empty-state{text-align:center;padding:3rem;color:var(--muted);font-style:italic;}
+  .divider{height:1px;background:var(--border);margin:2rem 0;}
+
+  .refresh-hint{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <p class="eyebrow">Acesso Restrito</p>
+    <h2>Dashboard do<br><em>Gestor</em></h2>
+    <p>Insira a senha para acessar os resultados da equipe.</p>
+    <p class="login-err" id="login-err">Senha incorreta.</p>
+    <input type="password" id="pwd-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn-primary" onclick="doLogin()">Entrar</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main-screen">
+<div class="container">
+
+  <header>
+    <div>
+      <p class="eyebrow">Painel do Gestor · Temperamento</p>
+      <h1>Visão da<br><em>Equipe</em></h1>
+    </div>
+    <div class="header-actions">
+      <span class="refresh-hint" id="last-update"></span>
+      <button class="btn-sm btn-outline" onclick="loadData()">↺ Atualizar</button>
+      <button class="btn-sm btn-outline" onclick="exportCSV()">Exportar CSV</button>
+      <button class="btn-sm btn-outline" onclick="generateAI()">Diagnóstico IA</button>
+      <button class="btn-sm btn-dark" onclick="logout()">Sair</button>
+    </div>
+  </header>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-num" id="kpi-total">0</div>
+      <div class="kpi-label">Total</div>
+    </div>
+    <div class="kpi-card col">
+      <div class="kpi-num" id="kpi-col">0</div>
+      <div class="kpi-label">Colérico</div>
+    </div>
+    <div class="kpi-card san">
+      <div class="kpi-num" id="kpi-san">0</div>
+      <div class="kpi-label">Sanguíneo</div>
+    </div>
+    <div class="kpi-card mel">
+      <div class="kpi-num" id="kpi-mel">0</div>
+      <div class="kpi-label">Melancólico</div>
+    </div>
+    <div class="kpi-card fle">
+      <div class="kpi-num" id="kpi-fle">0</div>
+      <div class="kpi-label">Fleumático</div>
+    </div>
+  </div>
+
+  <!-- Charts row -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <p class="card-title">Distribuição percentual</p>
+      <div id="dist-bars"></div>
+    </div>
+    <div class="chart-card">
+      <p class="card-title">Média de traços por perfil</p>
+      <canvas id="radar-canvas" width="300" height="220"></canvas>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <div class="table-header">
+      <p class="card-title" style="margin:0">Colaboradores</p>
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">
+        <input class="search-input" id="search" placeholder="Buscar nome..." oninput="renderTable()">
+        <div class="filter-btns">
+          <button class="flt active" data-f="all" onclick="setFilter(this,'all')">Todos</button>
+          <button class="flt" data-f="Colérico" onclick="setFilter(this,'Colérico')">Col</button>
+          <button class="flt" data-f="Sanguíneo" onclick="setFilter(this,'Sanguíneo')">San</button>
+          <button class="flt" data-f="Melancólico" onclick="setFilter(this,'Melancólico')">Mel</button>
+          <button class="flt" data-f="Fleumático" onclick="setFilter(this,'Fleumático')">Fle</button>
+        </div>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th onclick="sortBy('nome')">Colaborador</th>
+          <th onclick="sortBy('data')">Data</th>
+          <th onclick="sortBy('perfil')">Perfil</th>
+          <th>Distribuição</th>
+          <th onclick="sortBy('colerico')">Col%</th>
+          <th onclick="sortBy('sanguineo')">San%</th>
+          <th onclick="sortBy('melancolico')">Mel%</th>
+          <th onclick="sortBy('fleumatico')">Fle%</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- AI Diagnosis -->
+  <div class="ai-box" id="ai-box" style="display:none">
+    <p class="ai-label"><span class="ai-dot" id="ai-dot"></span>Diagnóstico Organizacional · IA</p>
+    <p class="ai-text loading" id="ai-text">Gerando diagnóstico...</p>
+  </div>
+
+</div>
+</div>
+
+<script>
+// =============================================
+// ▼▼▼ CONFIGURAÇÃO — edite estas linhas ▼▼▼
+const SENHA      = 'gestor123';          // ← Troque pela sua senha
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzbjdr5JGIDAUg-oSiTUVKRbXrFbFVRJ9T9UNQbuii6pGmVUyrJDusOkNeretcyyZpt/exec'; // ← Mesma URL do formulário
+// ▲▲▲ CONFIGURAÇÃO ▲▲▲
+// =============================================
+
+let allData = [];
+let currentFilter = 'all';
+let sortKey = 'data';
+let sortDir = -1;
+
+// LOGIN
+function doLogin() {
+  const v = document.getElementById('pwd-input').value;
+  if(v === SENHA) {
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('main-screen').style.display='block';
+    sessionStorage.setItem('auth','1');
+    loadData();
+  } else {
+    document.getElementById('login-err').style.display='block';
+  }
+}
+
+function logout() {
+  sessionStorage.removeItem('auth');
+  location.reload();
+}
+
+window.onload = () => {
+  if(sessionStorage.getItem('auth')==='1') {
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('main-screen').style.display='block';
+    loadData();
+  }
+};
+
+// LOAD DATA
+async function loadData() {
+  if(!SCRIPT_URL || SCRIPT_URL==='COLE_AQUI_A_URL_DO_APPS_SCRIPT'){
+    // Demo data
+    allData = [
+      {nome:'Ana Silva',data:'01/06/2025 09:12',q1:'A',q2:'A',q3:'A',q4:'A',q5:'A',q6:'A',colerico:6,sanguineo:0,melancolico:0,fleumatico:0,perfil:'Colérico'},
+      {nome:'Bruno Cardoso',data:'01/06/2025 10:30',q1:'B',q2:'B',q3:'B',q4:'B',q5:'B',q6:'B',colerico:0,sanguineo:6,melancolico:0,fleumatico:0,perfil:'Sanguíneo'},
+      {nome:'Carla Menezes',data:'02/06/2025 08:45',q1:'C',q2:'C',q3:'C',q4:'C',q5:'C',q6:'C',colerico:0,sanguineo:0,melancolico:6,fleumatico:0,perfil:'Melancólico'},
+      {nome:'Diego Rocha',data:'02/06/2025 14:20',q1:'D',q2:'D',q3:'D',q4:'D',q5:'D',q6:'D',colerico:0,sanguineo:0,melancolico:0,fleumatico:6,perfil:'Fleumático'},
+      {nome:'Eduarda Lima',data:'03/06/2025 11:00',q1:'A',q2:'B',q3:'A',q4:'B',q5:'A',q6:'B',colerico:3,sanguineo:3,melancolico:0,fleumatico:0,perfil:'Colérico'},
+      {nome:'Felipe Torres',data:'03/06/2025 15:40',q1:'C',q2:'D',q3:'C',q4:'D',q5:'C',q6:'D',colerico:0,sanguineo:0,melancolico:3,fleumatico:3,perfil:'Melancólico'},
+    ];
+    renderAll();
+    document.getElementById('last-update').textContent='Dados de demonstração';
+    return;
+  }
+
+  try {
+    const r = await fetch(SCRIPT_URL+'?action=get');
+    const d = await r.json();
+    allData = d;
+    renderAll();
+    document.getElementById('last-update').textContent='Atualizado: '+new Date().toLocaleTimeString('pt-BR');
+  } catch(e) {
+    document.getElementById('last-update').textContent='Erro ao carregar dados';
+  }
+}
+
+// RENDER ALL
+function renderAll() {
+  renderKPIs();
+  renderDistBars();
+  renderTable();
+  renderRadar();
+}
+
+function pct(n,total){ return total===0?0:Math.round((n/total)*100); }
+
+function renderKPIs(){
+  const n=allData.length;
+  const counts={Colérico:0,Sanguíneo:0,Melancólico:0,Fleumático:0};
+  allData.forEach(r=>{ if(counts[r.perfil]!==undefined) counts[r.perfil]++; });
+  document.getElementById('kpi-total').textContent=n;
+  document.getElementById('kpi-col').textContent=counts['Colérico'];
+  document.getElementById('kpi-san').textContent=counts['Sanguíneo'];
+  document.getElementById('kpi-mel').textContent=counts['Melancólico'];
+  document.getElementById('kpi-fle').textContent=counts['Fleumático'];
+}
+
+function renderDistBars(){
+  const n=allData.length||1;
+  const totals={col:0,san:0,mel:0,fle:0};
+  allData.forEach(r=>{totals.col+=r.colerico;totals.san+=r.sanguineo;totals.mel+=r.melancolico;totals.fle+=r.fleumatico;});
+  const grand=totals.col+totals.san+totals.mel+totals.fle||1;
+  const rows=[
+    {label:'Colérico',cls:'col',val:totals.col},
+    {label:'Sanguíneo',cls:'san',val:totals.san},
+    {label:'Melancólico',cls:'mel',val:totals.mel},
+    {label:'Fleumático',cls:'fle',val:totals.fle},
+  ];
+  const cont=document.getElementById('dist-bars');
+  cont.innerHTML='';
+  rows.forEach(row=>{
+    const p=Math.round((row.val/grand)*100);
+    cont.innerHTML+=`<div class="dist-bar-row">
+      <div class="dist-meta"><span>${row.label}</span><span class="dist-pct">${p}%</span></div>
+      <div class="bar-track"><div class="bar-fill ${row.cls}" id="dbar-${row.cls}"></div></div>
+    </div>`;
+  });
+  setTimeout(()=>{
+    rows.forEach(row=>{
+      const p=Math.round((row.val/grand)*100);
+      const el=document.getElementById('dbar-'+row.cls);
+      if(el) el.style.width=p+'%';
+    });
+  },100);
+}
+
+function setFilter(el,f){
+  document.querySelectorAll('.flt').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  currentFilter=f;
+  renderTable();
+}
+
+function sortBy(key){
+  if(sortKey===key) sortDir*=-1; else {sortKey=key;sortDir=-1;}
+  renderTable();
+}
+
+function renderTable(){
+  const q=document.getElementById('search').value.toLowerCase();
+  let data=allData.filter(r=>{
+    const matchName=r.nome.toLowerCase().includes(q);
+    const matchFilter=currentFilter==='all'||r.perfil===currentFilter;
+    return matchName&&matchFilter;
+  });
+
+  data.sort((a,b)=>{
+    const av=a[sortKey]||''; const bv=b[sortKey]||'';
+    if(typeof av==='number') return (av-bv)*sortDir;
+    return av.localeCompare(bv)*sortDir;
+  });
+
+  const tbody=document.getElementById('tbody');
+  if(data.length===0){tbody.innerHTML=`<tr><td colspan="8" class="empty-state">Nenhum resultado encontrado.</td></tr>`;return;}
+
+  const clsMap={'Colérico':'col','Sanguíneo':'san','Melancólico':'mel','Fleumático':'fle'};
+  tbody.innerHTML=data.map(r=>{
+    const total=(r.colerico+r.sanguineo+r.melancolico+r.fleumatico)||1;
+    const wCol=Math.round((r.colerico/total)*60);
+    const wSan=Math.round((r.sanguineo/total)*60);
+    const wMel=Math.round((r.melancolico/total)*60);
+    const wFle=Math.round((r.fleumatico/total)*60);
+    const cls=clsMap[r.perfil]||'col';
+    return `<tr>
+      <td>${r.nome}</td>
+      <td class="date-cell">${r.data}</td>
+      <td><span class="badge ${cls}">${r.perfil}</span></td>
+      <td><div class="mini-bars">
+        <div class="mini-seg" style="width:${wCol}px;background:var(--col)"></div>
+        <div class="mini-seg" style="width:${wSan}px;background:var(--san)"></div>
+        <div class="mini-seg" style="width:${wMel}px;background:var(--mel)"></div>
+        <div class="mini-seg" style="width:${wFle}px;background:var(--fle)"></div>
+      </div></td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.72rem">${pct(r.colerico,total)}%</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.72rem">${pct(r.sanguineo,total)}%</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.72rem">${pct(r.melancolico,total)}%</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.72rem">${pct(r.fleumatico,total)}%</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderRadar(){
+  const canvas=document.getElementById('radar-canvas');
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(allData.length===0) return;
+
+  const n=allData.length;
+  const avgCol=allData.reduce((s,r)=>s+r.colerico,0)/n;
+  const avgSan=allData.reduce((s,r)=>s+r.sanguineo,0)/n;
+  const avgMel=allData.reduce((s,r)=>s+r.melancolico,0)/n;
+  const avgFle=allData.reduce((s,r)=>s+r.fleumatico,0)/n;
+
+  const W=canvas.width,H=canvas.height;
+  const cx=W/2,cy=H/2,R=Math.min(W,H)*0.38;
+  const labels=['Colérico','Sanguíneo','Melancólico','Fleumático'];
+  const vals=[avgCol,avgSan,avgMel,avgFle];
+  const colors=['#1A1209','#8B4A1C','#2C3E50','#1B4332'];
+  const angles=labels.map((_,i)=>(-Math.PI/2)+(i*2*Math.PI/4));
+
+  // Grid
+  for(let g=1;g<=3;g++){
+    ctx.beginPath();
+    angles.forEach((a,i)=>{
+      const r=R*(g/3);
+      const x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.closePath();
+    ctx.strokeStyle='rgba(0,0,0,0.08)';ctx.lineWidth=0.5;ctx.stroke();
+  }
+
+  // Axes
+  angles.forEach(a=>{
+    ctx.beginPath();ctx.moveTo(cx,cy);
+    ctx.lineTo(cx+R*Math.cos(a),cy+R*Math.sin(a));
+    ctx.strokeStyle='rgba(0,0,0,0.1)';ctx.lineWidth=0.5;ctx.stroke();
+  });
+
+  // Data polygon
+  ctx.beginPath();
+  angles.forEach((a,i)=>{
+    const r=R*(vals[i]/6);
+    const x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.closePath();
+  ctx.fillStyle='rgba(26,18,9,0.12)';ctx.fill();
+  ctx.strokeStyle='rgba(26,18,9,0.5)';ctx.lineWidth=1.5;ctx.stroke();
+
+  // Points + labels
+  angles.forEach((a,i)=>{
+    const r=R*(vals[i]/6);
+    const x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);
+    ctx.beginPath();ctx.arc(x,y,3,0,2*Math.PI);
+    ctx.fillStyle=colors[i];ctx.fill();
+
+    const lx=cx+(R+22)*Math.cos(a),ly=cy+(R+22)*Math.sin(a);
+    ctx.font='10px "DM Mono",monospace';ctx.fillStyle='rgba(0,0,0,0.5)';
+    ctx.textAlign=lx>cx?'left':'right';ctx.textBaseline='middle';
+    ctx.fillText(labels[i],lx,ly);
+  });
+}
+
+// EXPORT CSV
+function exportCSV(){
+  if(allData.length===0){alert('Nenhum dado para exportar.');return;}
+  const headers='Nome,Data,Perfil,Colérico,Sanguíneo,Melancólico,Fleumático\n';
+  const rows=allData.map(r=>`${r.nome},${r.data},${r.perfil},${r.colerico},${r.sanguineo},${r.melancolico},${r.fleumatico}`).join('\n');
+  const blob=new Blob([headers+rows],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='temperamentos_equipe.csv';
+  a.click();
+}
+
+// AI DIAGNOSIS
+async function generateAI(){
+  const box=document.getElementById('ai-box');
+  const aiText=document.getElementById('ai-text');
+  const aiDot=document.getElementById('ai-dot');
+  box.style.display='block';
+  box.scrollIntoView({behavior:'smooth',block:'start'});
+  aiText.className='ai-text loading';
+  aiText.textContent='Gerando diagnóstico organizacional...';
+  aiDot.style.animation='pulse 1.5s ease-in-out infinite';
+
+  const n=allData.length;
+  const counts={Colérico:0,Sanguíneo:0,Melancólico:0,Fleumático:0};
+  allData.forEach(r=>{if(counts[r.perfil]!==undefined)counts[r.perfil]++;});
+  const summary=allData.map(r=>`${r.nome}: ${r.perfil} (Col:${r.colerico} San:${r.sanguineo} Mel:${r.melancolico} Fle:${r.fleumatico})`).join('\n');
+
+  const prompt=`Você é especialista em psicologia organizacional e gestão de pessoas.
+
+Resultados do Teste de Temperamento Profissional — ${n} colaboradores:
+- Coléricos: ${counts['Colérico']}
+- Sanguíneos: ${counts['Sanguíneo']}
+- Melancólicos: ${counts['Melancólico']}
+- Fleumáticos: ${counts['Fleumático']}
+
+Detalhamento individual:
+${summary}
+
+Escreva um diagnóstico organizacional em português, 4 parágrafos:
+1. Perfil geral e dinâmica predominante da equipe
+2. Pontos fortes coletivos identificados na composição
+3. Riscos psicossociais e pontos de atenção para a gestão
+4. Recomendações estratégicas de alocação e desenvolvimento
+
+Profissional, orientado à gestão de pessoas. Prosa fluida, sem bullet points. Máximo 350 palavras.`;
+
+  try {
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+    });
+    const d=await r.json();
+    aiText.className='ai-text';
+    aiText.textContent=d.content?.[0]?.text||'Não foi possível gerar o diagnóstico.';
+    aiDot.style.animation='none';
+  } catch(e){
+    aiText.className='ai-text';
+    aiText.textContent='Erro ao conectar com a IA.';
+    aiDot.style.animation='none';
+  }
+}
+</script>
+</body>
+</html>

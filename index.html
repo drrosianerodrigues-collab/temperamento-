@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teste de Temperamento Profissional</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --col: #1A1209; --san: #8B4A1C; --mel: #2C3E50; --fle: #1B4332;
+    --bg: #F7F3EE; --card: #FDFAF7; --border: #E0D8CE;
+    --text: #1A1209; --muted: #8A7F72;
+    --col-light: #F5E6D3; --san-light: #FDF0E0; --mel-light: #E8EEF4; --fle-light: #E8F4EE;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Cormorant Garamond',Georgia,serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:0.35;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  }
+  .container { max-width:680px; margin:0 auto; padding:2rem 1.5rem; position:relative; z-index:1; }
+
+  header { text-align:center; padding:3rem 0 2.5rem; border-bottom:1px solid var(--border); margin-bottom:2.5rem; }
+  .eyebrow { font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.2em; color:var(--muted); text-transform:uppercase; margin-bottom:0.8rem; }
+  h1 { font-size:clamp(2rem,5vw,3rem); font-weight:300; line-height:1.1; letter-spacing:-0.02em; }
+  h1 em { font-style:italic; }
+  .subtitle { margin-top:0.8rem; font-size:1rem; color:var(--muted); font-weight:300; line-height:1.6; }
+
+  /* NAME FIELD */
+  .name-card { background:var(--card); border:1px solid var(--border); border-radius:2px; padding:2rem; margin-bottom:1.2rem; }
+  .field-label { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:0.6rem; display:block; }
+  input[type="text"] { width:100%; font-family:'Cormorant Garamond',serif; font-size:1.1rem; padding:0.7rem 0.9rem; border:1px solid var(--border); border-radius:2px; background:var(--bg); color:var(--text); outline:none; transition:border-color 0.15s; }
+  input[type="text"]:focus { border-color:var(--text); }
+
+  /* QUESTIONS */
+  .form-card { background:var(--card); border:1px solid var(--border); border-radius:2px; padding:2rem; margin-bottom:1.2rem; }
+  .section-label { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:0.8rem; }
+  .question { font-size:1.1rem; font-weight:400; margin-bottom:1.1rem; line-height:1.5; }
+  .options { display:flex; flex-direction:column; gap:0.45rem; }
+  .option-label { display:flex; align-items:flex-start; gap:0.75rem; padding:0.65rem 0.9rem; border:1px solid var(--border); border-radius:2px; cursor:pointer; transition:all 0.15s; font-size:0.97rem; line-height:1.4; background:var(--bg); }
+  .option-label:hover { border-color:var(--text); background:var(--card); }
+  .option-label.selected { border-color:var(--text); background:var(--text); color:var(--bg); }
+  .opt-letter { font-family:'DM Mono',monospace; font-size:0.7rem; opacity:0.5; flex-shrink:0; margin-top:2px; }
+
+  .btn-primary { font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.15em; text-transform:uppercase; padding:0.9rem 2rem; background:var(--text); color:var(--bg); border:none; border-radius:2px; cursor:pointer; transition:opacity 0.2s; width:100%; margin-top:0.5rem; }
+  .btn-primary:hover { opacity:0.8; }
+  .btn-primary:disabled { opacity:0.35; cursor:not-allowed; }
+  .error-msg { color:#c0392b; font-family:'DM Mono',monospace; font-size:0.72rem; margin-top:0.6rem; display:none; text-align:center; }
+
+  /* RESULT */
+  #result-area { display:none; margin-top:2rem; animation:fadeIn 0.5s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .divider { height:1px; background:var(--border); margin:2rem 0; }
+
+  .profile-card { padding:2.2rem; border-radius:2px; border:1px solid transparent; margin-bottom:1.2rem; }
+  .profile-card.colerico  { background:var(--col-light); border-color:var(--col); }
+  .profile-card.sanguineo { background:var(--san-light); border-color:var(--san); }
+  .profile-card.melancolico { background:var(--mel-light); border-color:var(--mel); }
+  .profile-card.fleumatico { background:var(--fle-light); border-color:var(--fle); }
+  .profile-type { font-family:'DM Mono',monospace; font-size:0.63rem; letter-spacing:0.15em; text-transform:uppercase; opacity:0.6; margin-bottom:0.3rem; }
+  .profile-name { font-size:2.2rem; font-weight:300; font-style:italic; line-height:1.1; margin-bottom:0.5rem; }
+  .profile-tagline { font-size:0.98rem; line-height:1.6; opacity:0.8; }
+
+  .scores-card { background:var(--card); border:1px solid var(--border); padding:1.8rem; border-radius:2px; margin-bottom:1.2rem; }
+  .score-row { margin-bottom:1rem; }
+  .score-meta { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.35rem; }
+  .score-name { font-size:0.92rem; }
+  .score-pct { font-family:'DM Mono',monospace; font-size:0.72rem; color:var(--muted); }
+  .bar-track { height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:2px; transition:width 0.9s cubic-bezier(0.16,1,0.3,1); width:0%; }
+  .bar-fill.col{background:var(--col)} .bar-fill.san{background:var(--san)}
+  .bar-fill.mel{background:var(--mel)} .bar-fill.fle{background:var(--fle)}
+
+  .ai-box { background:var(--card); border:1px solid var(--border); border-radius:2px; padding:2.2rem; margin-bottom:1.5rem; }
+  .ai-label { font-family:'DM Mono',monospace; font-size:0.63rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:1.2rem; display:flex; align-items:center; gap:0.5rem; }
+  .ai-dot { width:6px; height:6px; border-radius:50%; background:var(--text); animation:pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  .ai-text { font-size:1rem; line-height:1.9; font-weight:300; white-space:pre-wrap; }
+  .ai-text.loading { color:var(--muted); font-style:italic; }
+
+  .sending-msg { font-family:'DM Mono',monospace; font-size:0.7rem; color:var(--muted); text-align:center; margin-top:0.5rem; }
+
+  .btn-secondary { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; padding:0.8rem 2rem; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:2px; cursor:pointer; width:100%; transition:border-color 0.2s; }
+  .btn-secondary:hover { border-color:var(--text); }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <p class="eyebrow">Teste de Temperamento Profissional</p>
+    <h1>Descobrindo o<br><em>Temperamento</em></h1>
+    <p class="subtitle">Responda com honestidade — não há resposta certa ou errada.</p>
+  </header>
+
+  <div id="form-area">
+    <!-- Nome -->
+    <div class="name-card">
+      <label class="field-label" for="resp-name">Seu nome completo</label>
+      <input type="text" id="resp-name" placeholder="Ex: Ana Silva">
+    </div>
+
+    <!-- Q1 -->
+    <div class="form-card">
+      <p class="section-label">Seção 1 — Reação sob pressão</p>
+      <p class="question">1. Quando estou sob pressão:</p>
+      <div class="options" id="q1">
+        <label class="option-label" onclick="sel(this,'q1','A')"><span class="opt-letter">A</span>Tomo decisões rápidas e assumo o controle.</label>
+        <label class="option-label" onclick="sel(this,'q1','B')"><span class="opt-letter">B</span>Tento animar os outros e manter o clima leve.</label>
+        <label class="option-label" onclick="sel(this,'q1','C')"><span class="opt-letter">C</span>Fico quieto e analiso antes de agir.</label>
+        <label class="option-label" onclick="sel(this,'q1','D')"><span class="opt-letter">D</span>Evito conflitos e espero o momento certo para me posicionar.</label>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="form-card">
+      <p class="section-label">Seção 2 — Estilo de trabalho</p>
+      <p class="question">2. Meu estilo de trabalho é:</p>
+      <div class="options" id="q2">
+        <label class="option-label" onclick="sel(this,'q2','A')"><span class="opt-letter">A</span>Focado em resultados, metas e produtividade.</label>
+        <label class="option-label" onclick="sel(this,'q2','B')"><span class="opt-letter">B</span>Comunicativo, envolvente e criativo.</label>
+        <label class="option-label" onclick="sel(this,'q2','C')"><span class="opt-letter">C</span>Detalhista, perfeccionista e metódico.</label>
+        <label class="option-label" onclick="sel(this,'q2','D')"><span class="opt-letter">D</span>Calmo, paciente e confiável.</label>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="form-card">
+      <p class="section-label">Seção 3 — Relacionamento com colegas</p>
+      <p class="question">3. Quando trabalho em equipe:</p>
+      <div class="options" id="q3">
+        <label class="option-label" onclick="sel(this,'q3','A')"><span class="opt-letter">A</span>Gosto de liderar e delegar tarefas.</label>
+        <label class="option-label" onclick="sel(this,'q3','B')"><span class="opt-letter">B</span>Me conecto fácil com todos e trago entusiasmo.</label>
+        <label class="option-label" onclick="sel(this,'q3','C')"><span class="opt-letter">C</span>Gosto de ajudar com organização e planejamento.</label>
+        <label class="option-label" onclick="sel(this,'q3','D')"><span class="opt-letter">D</span>Evito conflitos e busco harmonia.</label>
+      </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="form-card">
+      <p class="section-label">Seção 4 — Resposta a mudanças</p>
+      <p class="question">4. Diante de mudanças inesperadas:</p>
+      <div class="options" id="q4">
+        <label class="option-label" onclick="sel(this,'q4','A')"><span class="opt-letter">A</span>Me adapto rapidamente e penso em soluções.</label>
+        <label class="option-label" onclick="sel(this,'q4','B')"><span class="opt-letter">B</span>Busco motivar a equipe para aceitar a mudança.</label>
+        <label class="option-label" onclick="sel(this,'q4','C')"><span class="opt-letter">C</span>Me sinto inseguro e prefiro planejar bem antes de agir.</label>
+        <label class="option-label" onclick="sel(this,'q4','D')"><span class="opt-letter">D</span>Preciso de tempo para processar, mas sigo com estabilidade.</label>
+      </div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="form-card">
+      <p class="section-label">Seção 5 — Pontos de estresse</p>
+      <p class="question">5. O que mais me estressa no ambiente de trabalho:</p>
+      <div class="options" id="q5">
+        <label class="option-label" onclick="sel(this,'q5','A')"><span class="opt-letter">A</span>Falta de foco ou pessoas desmotivadas.</label>
+        <label class="option-label" onclick="sel(this,'q5','B')"><span class="opt-letter">B</span>Ambientes negativos e sem interação.</label>
+        <label class="option-label" onclick="sel(this,'q5','C')"><span class="opt-letter">C</span>Bagunça, improviso ou falta de regras claras.</label>
+        <label class="option-label" onclick="sel(this,'q5','D')"><span class="opt-letter">D</span>Cobranças excessivas ou pressões agressivas.</label>
+      </div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="form-card">
+      <p class="section-label">Seção 6 — Motivação profissional</p>
+      <p class="question">6. Sinto-me motivado quando:</p>
+      <div class="options" id="q6">
+        <label class="option-label" onclick="sel(this,'q6','A')"><span class="opt-letter">A</span>Tenho desafios, autonomia e posso liderar.</label>
+        <label class="option-label" onclick="sel(this,'q6','B')"><span class="opt-letter">B</span>Posso me expressar, ser criativo e receber reconhecimento.</label>
+        <label class="option-label" onclick="sel(this,'q6','C')"><span class="opt-letter">C</span>Tenho clareza, segurança e reconhecimento pela qualidade.</label>
+        <label class="option-label" onclick="sel(this,'q6','D')"><span class="opt-letter">D</span>Estou em ambientes estáveis e com pessoas acolhedoras.</label>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="submit()">Ver meu resultado</button>
+    <p class="error-msg" id="err">Preencha seu nome e responda todas as perguntas.</p>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result-area">
+    <div class="divider"></div>
+    <p class="eyebrow" style="text-align:center;margin-bottom:1.5rem">Seu Resultado</p>
+
+    <div id="profile-card" class="profile-card">
+      <p class="profile-type">Temperamento Predominante</p>
+      <p class="profile-name" id="profile-name">—</p>
+      <p class="profile-tagline" id="profile-tagline">—</p>
+    </div>
+
+    <div class="scores-card">
+      <p class="section-label" style="margin-bottom:1rem">Distribuição dos seus traços</p>
+      <div class="score-row">
+        <div class="score-meta"><span class="score-name">Colérico</span><span class="score-pct" id="pct-col">0%</span></div>
+        <div class="bar-track"><div class="bar-fill col" id="bar-col"></div></div>
+      </div>
+      <div class="score-row">
+        <div class="score-meta"><span class="score-name">Sanguíneo</span><span class="score-pct" id="pct-san">0%</span></div>
+        <div class="bar-track"><div class="bar-fill san" id="bar-san"></div></div>
+      </div>
+      <div class="score-row">
+        <div class="score-meta"><span class="score-name">Melancólico</span><span class="score-pct" id="pct-mel">0%</span></div>
+        <div class="bar-track"><div class="bar-fill mel" id="bar-mel"></div></div>
+      </div>
+      <div class="score-row">
+        <div class="score-meta"><span class="score-name">Fleumático</span><span class="score-pct" id="pct-fle">0%</span></div>
+        <div class="bar-track"><div class="bar-fill fle" id="bar-fle"></div></div>
+      </div>
+    </div>
+
+    <div class="ai-box">
+      <p class="ai-label"><span class="ai-dot" id="ai-dot"></span>Análise Interpretativa</p>
+      <p class="ai-text loading" id="ai-text">Gerando sua análise personalizada...</p>
+    </div>
+
+    <button class="btn-secondary" onclick="reset()">Refazer o teste</button>
+  </div>
+</div>
+
+<script>
+// =============================================
+// ▼▼▼ CONFIGURAÇÃO — edite estas duas linhas ▼▼▼
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzbjdr5JGIDAUg-oSiTUVKRbXrFbFVRJ9T9UNQbuii6pGmVUyrJDusOkNeretcyyZpt/exec';
+// ▲▲▲ CONFIGURAÇÃO ▲▲▲
+// =============================================
+
+const ans = {q1:null,q2:null,q3:null,q4:null,q5:null,q6:null};
+
+const PROFILES = {
+  A:{name:'Colérico',cls:'colerico',tagline:'Proativo, competitivo e líder nato. Movido por desafios e resultados.'},
+  B:{name:'Sanguíneo',cls:'sanguineo',tagline:'Comunicativo, entusiasta e criativo. Energiza ambientes com presença e conexão.'},
+  C:{name:'Melancólico',cls:'melancolico',tagline:'Analítico, detalhista e comprometido com excelência. Pensa antes de agir.'},
+  D:{name:'Fleumático',cls:'fleumatico',tagline:'Equilibrado, confiável e mediador. Traz estabilidade e harmonia ao grupo.'}
+};
+
+function sel(el, qid, val) {
+  document.querySelectorAll(`#${qid} .option-label`).forEach(l=>l.classList.remove('selected'));
+  el.classList.add('selected');
+  ans[qid]=val;
+}
+
+function calcScores(resps) {
+  const c={A:0,B:0,C:0,D:0};
+  resps.forEach(r=>{if(c[r]!==undefined)c[r]++;});
+  return c;
+}
+
+function dominant(scores) {
+  return Object.entries(scores).sort((a,b)=>b[1]-a[1])[0][0];
+}
+
+async function submit() {
+  const name = document.getElementById('resp-name').value.trim();
+  const allAns = Object.values(ans).every(v=>v!==null);
+  const err = document.getElementById('err');
+  if(!name || !allAns){err.style.display='block';return;}
+  err.style.display='none';
+
+  const resps=[ans.q1,ans.q2,ans.q3,ans.q4,ans.q5,ans.q6];
+  const scores=calcScores(resps);
+  const dom=dominant(scores);
+  const prof=PROFILES[dom];
+  const total=resps.length;
+
+  // Hide form, show result
+  document.getElementById('form-area').style.display='none';
+  document.getElementById('result-area').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+
+  // Profile card
+  const card=document.getElementById('profile-card');
+  card.className='profile-card '+prof.cls;
+  document.getElementById('profile-name').textContent=prof.name;
+  document.getElementById('profile-tagline').textContent=prof.tagline;
+
+  // Bars
+  setTimeout(()=>{
+    const keys=['col','san','mel','fle'];
+    ['A','B','C','D'].forEach((l,i)=>{
+      const pct=Math.round((scores[l]/total)*100);
+      document.getElementById('bar-'+keys[i]).style.width=pct+'%';
+      document.getElementById('pct-'+keys[i]).textContent=pct+'%';
+    });
+  },150);
+
+  // Send to Sheets (fire and forget — não bloqueia o resultado)
+  const payload = {
+    nome: name,
+    data: new Date().toLocaleString('pt-BR'),
+    q1:ans.q1,q2:ans.q2,q3:ans.q3,q4:ans.q4,q5:ans.q5,q6:ans.q6,
+    colerico:scores.A,sanguineo:scores.B,melancolico:scores.C,fleumatico:scores.D,
+    perfil:prof.name
+  };
+  if(SCRIPT_URL && SCRIPT_URL !== 'COLE_AQUI_A_URL_DO_APPS_SCRIPT'){
+    fetch(SCRIPT_URL, {method:'POST',body:JSON.stringify(payload)}).catch(()=>{});
+  }
+
+  // AI analysis
+  const aiText=document.getElementById('ai-text');
+  const aiDot=document.getElementById('ai-dot');
+
+  const sectionLabels={
+    q1:{A:'Toma decisões rápidas',B:'Anima os outros',C:'Analisa antes de agir',D:'Evita conflitos'},
+    q2:{A:'Focado em resultados',B:'Comunicativo e criativo',C:'Detalhista e metódico',D:'Calmo e confiável'},
+    q3:{A:'Lidera e delega',B:'Conecta e entusiasma',C:'Organiza e planeja',D:'Busca harmonia'},
+    q4:{A:'Adapta-se rapidamente',B:'Motiva a equipe',C:'Prefere planejar',D:'Processa com calma'},
+    q5:{A:'Falta de foco',B:'Ambientes negativos',C:'Falta de organização',D:'Pressão excessiva'},
+    q6:{A:'Desafios e autonomia',B:'Expressão e criatividade',C:'Clareza e qualidade',D:'Estabilidade e acolhimento'}
+  };
+
+  const prompt=`Você é especialista em psicologia organizacional e temperamentos.
+
+O colaborador "${name}" respondeu ao Teste de Temperamento Profissional:
+- Colérico: ${scores.A}/6 (${Math.round((scores.A/6)*100)}%)
+- Sanguíneo: ${scores.B}/6 (${Math.round((scores.B/6)*100)}%)
+- Melancólico: ${scores.C}/6 (${Math.round((scores.C/6)*100)}%)
+- Fleumático: ${scores.D}/6 (${Math.round((scores.D/6)*100)}%)
+- Temperamento predominante: ${prof.name}
+
+Respostas por seção:
+1. Pressão: ${sectionLabels.q1[ans.q1]}
+2. Trabalho: ${sectionLabels.q2[ans.q2]}
+3. Equipe: ${sectionLabels.q3[ans.q3]}
+4. Mudanças: ${sectionLabels.q4[ans.q4]}
+5. Estresse: ${sectionLabels.q5[ans.q5]}
+6. Motivação: ${sectionLabels.q6[ans.q6]}
+
+Escreva uma análise em português, direto ao colaborador (use "você"), 3 parágrafos:
+1. Perfil predominante e como se manifesta no trabalho
+2. Potencialidades e pontos de atenção
+3. Recomendações práticas de desenvolvimento
+
+Empático, profissional, prosa fluida sem bullet points. Máximo 280 palavras.`;
+
+  try {
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+    });
+    const d=await r.json();
+    aiText.className='ai-text';
+    aiText.textContent=d.content?.[0]?.text||'Não foi possível gerar a análise.';
+    aiDot.style.animation='none';
+  } catch(e) {
+    aiText.className='ai-text';
+    aiText.textContent='Erro ao gerar análise. Verifique sua conexão.';
+    aiDot.style.animation='none';
+  }
+}
+
+function reset() {
+  Object.keys(ans).forEach(k=>ans[k]=null);
+  document.querySelectorAll('.option-label').forEach(l=>l.classList.remove('selected'));
+  document.getElementById('resp-name').value='';
+  document.getElementById('form-area').style.display='block';
+  document.getElementById('result-area').style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
