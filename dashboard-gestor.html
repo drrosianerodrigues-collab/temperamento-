@@ -504,14 +504,13 @@ Escreva um diagnóstico organizacional em português, 4 parágrafos:
 Profissional, orientado à gestão de pessoas. Prosa fluida, sem bullet points. Máximo 350 palavras.`;
 
   try {
-    const r=await fetch('https://api.anthropic.com/v1/messages',{
+    const r=await fetch(SCRIPT_URL,{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+      body:JSON.stringify({action:'ai',prompt})
     });
     const d=await r.json();
     aiText.className='ai-text';
-    aiText.textContent=d.content?.[0]?.text||'Não foi possível gerar o diagnóstico.';
+    aiText.textContent=d.text||'Não foi possível gerar o diagnóstico.';
     aiDot.style.animation='none';
   } catch(e){
     aiText.className='ai-text';
