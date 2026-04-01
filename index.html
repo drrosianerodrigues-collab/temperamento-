@@ -289,7 +289,7 @@ async function submit() {
     colerico:scores.A,sanguineo:scores.B,melancolico:scores.C,fleumatico:scores.D,
     perfil:prof.name
   };
-  if(SCRIPT_URL && SCRIPT_URL !== 'COLE_AQUI_A_URL_DO_APPS_SCRIPT'){
+  if(SCRIPT_URL && SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbyM9l8kr6hRBIzqp9pPRLRYPvM96EFjDQUwcJhF0mM6HSPTQ-28iwiWllq9kNFgCpbt/exec'){
     fetch(SCRIPT_URL, {method:'POST',body:JSON.stringify(payload)}).catch(()=>{});
   }
 
@@ -331,14 +331,13 @@ Escreva uma análise em português, direto ao colaborador (use "você"), 3 pará
 Empático, profissional, prosa fluida sem bullet points. Máximo 280 palavras.`;
 
   try {
-    const r=await fetch('https://api.anthropic.com/v1/messages',{
+    const r=await fetch(SCRIPT_URL,{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+      body:JSON.stringify({action:'ai',prompt})
     });
     const d=await r.json();
     aiText.className='ai-text';
-    aiText.textContent=d.content?.[0]?.text||'Não foi possível gerar a análise.';
+    aiText.textContent=d.text||'Não foi possível gerar a análise.';
     aiDot.style.animation='none';
   } catch(e) {
     aiText.className='ai-text';
